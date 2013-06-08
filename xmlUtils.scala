@@ -1,4 +1,4 @@
-package com.gjos.scalahelpers
+package com.gjos.scala.html2stags
 
 import scala.xml._
 import io.Source

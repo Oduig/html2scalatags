@@ -1,8 +1,8 @@
-package com.gjos.scalahelpers
+package com.gjos.scala.html2stags
 
 import scalatags._
 
-private[scalahelpers] trait Xml2ScalatagMaps {
+private[html2stags] trait Xml2ScalatagMaps {
   /*
    * Defines a map that takes an XML tag name and returns a function from 
    * an existing HtmlTag, to a new HtmlTag wrapping the old one.
