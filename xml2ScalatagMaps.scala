@@ -11,7 +11,7 @@ private[html2stags] trait Xml2ScalatagMaps {
    * Find:    ([^\n^\r]*)\r\n
    * Replace: "(\1)" -> \((\1)\(_\)\),\r\n
    */
-  val tagMap: Map[String, Seq[HtmlTag] => HtmlTag] = Map(
+  val myTagMap: Map[String, Seq[STag] => HtmlTag] = Map(
     "html" -> (html(_)),
     "head" -> (head(_)),
     "title" -> (title(_)),
@@ -131,7 +131,7 @@ private[html2stags] trait Xml2ScalatagMaps {
    * 
    * Same thing with Notepad++, except Replace by "(\1)" -> \(\(t, v\) => t.(\1)\(v\)\),\r\n
    */
-  val attrMap: Map[String, (HtmlTag, String) => HtmlTag] = Map(
+  val myAttrMap: Map[String, (HtmlTag, String) => HtmlTag] = Map(
     "href" -> ((t, v) => t.href(v)),
     "action" -> ((t, v) => t.action(v)),
     "id" -> ((t, v) => t.id(v)),

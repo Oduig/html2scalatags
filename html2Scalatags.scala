@@ -2,12 +2,14 @@ package com.gjos.scala.html2stags
 
 import scalatags._
 import scala.xml._
+import com.gjos.scala.json.slashEscaper
+import com.gjos.scala.json.htmlUnEscaper
 
 object html2Scalatags extends Xml2ScalatagMaps{  
   /*
    * Adds an attribute to a scalatag
    */
-  private def addAttribute(htag: HtmlTag, attrName: String, value: String) = attrMap.get(attrName) match {
+  private def addAttribute(htag: HtmlTag, attrName: String, value: String) = myAttrMap.get(attrName) match {
     case None           => htag.attr(attrName -> value)
     case Some(addAttr)  => addAttr(htag, value)
   }
@@ -26,17 +28,14 @@ object html2Scalatags extends Xml2ScalatagMaps{
   /*
    * Converts an XML node to a scala tag
    */
-  private def nodeToStag(node: Node): STag = tagMap.get(node.label) match {
+  private def nodeToStag(node: Node): STag = myTagMap.get(node.label) match {
       // Just use the XML tag as a string
       case None                   => {
         val trimmed = node.toString.trim
-        if(trimmed.nonEmpty) '"' + slashEscaper.escape(htmlUnescaper.unescape(trimmed)) + '"' else ""
+        if(trimmed.nonEmpty) '"' + slashEscaper.escape(htmlUnEscaper.unescape(trimmed)) + '"' else ""
       }
       // Recurse on children, and surround the child-HtmlTags with the HtmlTag for this node
-      case Some(surroundWithTag)  => surroundWithTag(nodesToStags(node.nonEmptyChildren)) match {
-        case htag: HtmlTag  => addAttributes(htag, node)
-        case stag           => stag
-      }
+      case Some(surroundWithTag)  => addAttributes(surroundWithTag(nodesToStags(node.nonEmptyChildren)), node)
   }
   
   /*
