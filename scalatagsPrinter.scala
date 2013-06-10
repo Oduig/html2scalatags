@@ -1,7 +1,7 @@
 package com.gjos.scala.html2stags
 
 import scalatags._
-import com.gjos.scala.json.slashEscaper
+import com.gjos.scala.json.slashEscaper._
 
 object scalatagsPrinter extends Xml2ScalatagMaps{
   private type SeqStag = SeqSTag[STag]
@@ -24,23 +24,23 @@ object scalatagsPrinter extends Xml2ScalatagMaps{
         val formattedStyles = if(htag.styles.nonEmpty) htag.styles.mkString(".css((", "), (", "))") else ""
         
         val otherNamedAttributes = for((k,v) <- htag.attrMap if myAttrMap.contains(k)) yield {
-          '.' + k + "(\"" + slashEscaper.escape(v.toString) + "\")"
+          '.' + k + "(\"" + escape(v.toString) + "\")"
         }
-        val otherUnnamedAttributes = htag.attrMap.filterKeys(!myAttrMap.contains(_)).map{ case (k,v) => slashEscaper.escape(k) + "\" -> \"" + slashEscaper.escape(v.toString) }
+        val otherUnnamedAttributes = htag.attrMap.filterKeys(!myAttrMap.contains(_)).map{ case (k,v) => escape(k) + "\" -> \"" + escape(v.toString) }
     
         val formattedOtherAttributes = if(htag.attrMap.nonEmpty) otherNamedAttributes.mkString + otherUnnamedAttributes.mkString(".attr(\"", "\", \"", "\")") else ""
         val formattedAttributes = formattedClasses + formattedStyles + formattedOtherAttributes
         htag.tag.trim + formattedAttributes + formattedChilds      
       }
       case stags: SeqStag         => {
-          val printedChilds = stags.children.map(print(_, indentLevel)).map(_.trim)
+          val printedChilds = stags.children.map(print(_, indentLevel)).map(_.trim).filter(_.nonEmpty).filter(_!="\"\"")
           if(printedChilds.exists(_.nonEmpty)) {
             printedChilds.mkString(", " + linedent ) 
           } else ""
       }
-      case xtag: XmlSTag          => xtag.toString
-      case otag: ObjectSTag       => otag.toString
-      case strtag: StringSTag     => "*"
+      case xtag: XmlSTag          => xtag.x.toString
+      case otag: ObjectSTag       => otag.x.toString
+      case strtag: StringSTag     => strtag.x.toString
       case other                  => other.toString
     }
     if(stringRepr.nonEmpty && indentLevel>0) linedent + stringRepr else stringRepr

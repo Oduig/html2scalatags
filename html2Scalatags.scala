@@ -3,7 +3,7 @@ package com.gjos.scala.html2stags
 import scalatags._
 import scala.xml._
 import com.gjos.scala.json.slashEscaper
-import com.gjos.scala.json.htmlUnEscaper
+import com.gjos.scala.json.htmlEscaper
 
 object html2Scalatags extends Xml2ScalatagMaps{  
   /*
@@ -32,7 +32,7 @@ object html2Scalatags extends Xml2ScalatagMaps{
       // Just use the XML tag as a string
       case None                   => {
         val trimmed = node.toString.trim
-        if(trimmed.nonEmpty) '"' + slashEscaper.escape(htmlUnEscaper.unescape(trimmed)) + '"' else ""
+        if(trimmed.nonEmpty) '"' + slashEscaper.escape(htmlEscaper.unescape(trimmed)) + '"' else ""
       }
       // Recurse on children, and surround the child-HtmlTags with the HtmlTag for this node
       case Some(surroundWithTag)  => addAttributes(surroundWithTag(nodesToStags(node.nonEmptyChildren)), node)
