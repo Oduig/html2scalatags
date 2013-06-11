@@ -1,11 +1,10 @@
 package com.gjos.scala.html2stags
 
 import scalatags._
-import scala.xml._
 import com.gjos.scala.json.slashEscaper
 import com.gjos.scala.json.htmlEscaper
-import tagNodeFuncions._
-import org.htmlcleaner._
+import org.jsoup.nodes._
+import scala.collection.JavaConversions._
 
 object html2Scalatags extends Xml2ScalatagMaps{  
   /*
@@ -17,36 +16,38 @@ object html2Scalatags extends Xml2ScalatagMaps{
   }
   
   /*
-   * Takes an XML node, and adds all the attributes from the node to the scalatag
+   * Takes an XML element, and adds all the attributes from the element to the scalatag
    */
-  private def addAttributes(htag: HtmlTag, node: TagNode): HtmlTag = {
-    def iter(t: HtmlTag, attribs: List[(String, String)]): HtmlTag = attribs match {
-      case Nil                  => t
-      case (key, value)::rest   => iter(addAttribute(t, key, value), rest)
+  private def addAttributes(htag: HtmlTag, element: Element): HtmlTag = {
+    def iter(t: HtmlTag, attribs: List[Attribute]): HtmlTag = attribs match{
+      case Nil          => t
+      case attr::rest   => iter(addAttribute(t, attr.getKey(), attr.getValue()), rest)
     } 
-    iter(htag, getAttributes(node).toList)
+    iter(htag, element.attributes().asList().toList)
   }
   
   /*
-   * Converts an XML node to a scala tag
+   * Converts an XML element to a scala tag
    */
-  private def nodeToStag(node: TagNode): STag = myTagMap.get(getLabel(node)) match {
+  private def elementToStag(element: Element): STag = myTagMap.get(element.tagName()) match {
       // Just use the XML tag as a string
       case None                   => {
-        val trimmed = node.toString.trim
+        val trimmed = element.toString.trim
         if(trimmed.nonEmpty) '"' + slashEscaper.escape(htmlEscaper.unescape(trimmed)) + '"' else ""
       }
-      // Recurse on children, and surround the child-HtmlTags with the HtmlTag for this node
-      case Some(surroundWithTag)  => addAttributes(surroundWithTag(nodesToStags(getChildren(node))), node)
+      // Recurse on children, and surround the child-HtmlTags with the HtmlTag for this element
+      case Some(surroundWithTag)  => addAttributes(surroundWithTag(elementsToStags(element.children().toSeq)), element)
   }
   
   /*
-   * Converts a sequence of XML nodes to a sequence of scala tags. 
-   * Empty tags are filtered, e.g.: <a><b>bla</b></a> is actually ("<a>", "", "<b>", "foo", "</b>", "</a>")
+   * Converts a sequence of XML elements to a sequence of scala tags. 
+   * Empty tags are filtered, e.g.: <a><b>bla</b></a> is actually ("<a>", "", "<b>", "foo", "</b>", "", "</a>")
    */
-  private def nodesToStags(nodes: Seq[TagNode]): Seq[STag] = nodes.map(nodeToStag(_))
+  private def elementsToStags(elements: Seq[Element]): Seq[STag] = elements.map(elementToStag(_))
   
   
-  def scalaTagsFromUrl(url: String): STag = nodeToStag(xmlUtils.xmlFromUrl(url))
-  def scalaTagsFromString(s: String): STag = nodeToStag(xmlUtils.xmlFromString(s))
+  def scalaTagsFromUrl(url: String): STag = elementToStag(htmlUtils.htmlFromUrl(url))
+  def scalaTagsFromFullHtmlString(s: String): STag = elementToStag(htmlUtils.parseFullHtmlFromString(s))
+  def scalaTagsFromPartialHtmlString(s: String): STag = elementToStag(htmlUtils.parsePartialHtmlFromString(s))
+  
 }
