@@ -1,8 +1,6 @@
 package com.gjos.scala.html2stags
 
 import scalatags._
-import com.gjos.scala.json.slashEscaper._
-import com.gjos.scala.json.htmlEscaper
 
 /*
  * Formats a scalatag into a string which can be put directly into scala code
@@ -28,7 +26,7 @@ object scalatagsPrinter extends Xml2ScalatagMaps{
      */ 
     def surroundWithQuotesIfNonEmpty(s: String): String = {
       if(s.trim.nonEmpty) {
-        val out = escape(htmlEscaper.unescape(s))
+        val out = slashEscaper.escape(htmlEscaper.unescape(s))
         val lines = out.split("\n").filter(_.trim.nonEmpty)
         if(lines.size > 1){
           lines.mkString("\"\"\"\n" + indentsNxt + "|", "\n" + indentsNxt + "|", "\n" + indents + "\"\"\".stripMargin")
@@ -55,10 +53,10 @@ object scalatagsPrinter extends Xml2ScalatagMaps{
         
         // Gather all the attributes that are defined by a special tag in scalatags
         val otherNamedAttributes = for((k,v) <- htag.attrMap if myAttrMap.contains(k)) yield {
-          '.' + k + "(\"" + escape(v.toString) + "\")"
+          '.' + k + "(\"" + slashEscaper.escape(v.toString) + "\")"
         }
         // Gather all the attributes that are not defined by a special tag in scalatags (uses attr("key" -> "value", ...) )
-        val otherUnnamedAttributes = htag.attrMap.filterKeys(!myAttrMap.contains(_)).map{ case (k,v) => escape(k) + "\" -> \"" + escape(v.toString) }
+        val otherUnnamedAttributes = htag.attrMap.filterKeys(!myAttrMap.contains(_)).map{ case (k,v) => slashEscaper.escape(k) + "\" -> \"" + slashEscaper.escape(v.toString) }
     
         // Format these attributes
         val formattedOtherAttributes = otherNamedAttributes.mkString + (if(otherUnnamedAttributes.nonEmpty) otherUnnamedAttributes.mkString(".attr(\"", "\", \"", "\")") else "")
@@ -79,7 +77,7 @@ object scalatagsPrinter extends Xml2ScalatagMaps{
       case strtag: StringSTag     => surroundWithQuotesIfNonEmpty(strtag.x.toString)
       // Trivial cases
       case xtag: XmlSTag          => xtag.x.toString
-      case otag: ObjectSTag       => otag.x.toString
+      case otag: ObjectSTag       => otag.toString
       case other                  => other.toString
     } 
   }
